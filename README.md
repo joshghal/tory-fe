@@ -28,12 +28,3 @@ yarn dev
 ```
 
 Open your browser to `http://localhost:3000`.
-
-## Environment Variables
-Set these environment variables in a `.env.local` file:
-
-```
-ARKM_API_KEY=
-TT_EMAIL=
-TT_PASSWORD=
-```
