@@ -1,4 +1,4 @@
-import { avgFuturesData } from '@/app/api/arkham/futures-data/route';
+import { avgFuturesData } from '@/services/arkham';
 import dayjs from 'dayjs';
 
 export const prepareUnlockAnalysisData = (unlocks: any[], openInterest: avgFuturesData[], fundingRates: avgFuturesData[]) => {

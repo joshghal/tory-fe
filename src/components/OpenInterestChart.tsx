@@ -5,7 +5,7 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import dayjs from 'dayjs';
-import { FuturesData } from '@/app/api/arkham/futures-data/route';
+import { FuturesData } from '@/services/arkham';
 
 interface Props {
   openInterest: FuturesData;
