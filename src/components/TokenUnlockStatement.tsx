@@ -13,12 +13,12 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { avgFuturesData } from '@/app/api/arkham/futures-data/route';
 import { prepareUnlockAnalysisData } from '@/utils/tokenUnlockUtils';
 import useAccountStore from '@/hooks/useTokenInfoStore';
 import { useRequest } from 'ahooks';
 import { getUnlocksResult, sendUnlocks } from '@/services/toryAgent';
 import { v4 as uuidv4 } from 'uuid';
+import { avgFuturesData } from '@/services/arkham';
 
 export type FuturesData = {
   [exchange: string]: {

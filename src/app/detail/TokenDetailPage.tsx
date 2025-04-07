@@ -57,7 +57,10 @@ const TokenDetailPage = () => {
 
   const { run: getFinancialStatementData, data: financialStatementData, loading: isgetFinancialStatementLoading } = useRequest(getFinancialStatement, {
     manual: true,
-    onError: (err) => {
+    onSuccess: (res) => {
+      console.log(res)
+    },
+     onError: (err) => {
       console.log(err);
     }
   })
