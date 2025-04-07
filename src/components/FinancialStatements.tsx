@@ -2,11 +2,11 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { ProjectMetric } from '@/app/api/token-terminal/financial-statement/route';
 import useAccountStore from '@/hooks/useTokenInfoStore';
 import { useRequest } from 'ahooks';
 import { getFinancialsResult, sendFinancials } from '@/services/toryAgent';
 import { v4 as uuidv4 } from 'uuid';
+import { ProjectMetric } from '@/services/tokenTerminal';
 
 interface Props {
   data: ProjectMetric[];
