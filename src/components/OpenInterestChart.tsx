@@ -59,7 +59,7 @@ const OpenInterestChart: React.FC<Props> = ({ openInterest }) => {
 
   return (
     <div className="bg-gray-800/10 text-gray-100 p-6 rounded-lg border border-white/5 max-w-[1160px] w-full">
-      <h2 className="text-xl font-semibold mb-6">Open Interest</h2>
+      <h2 className="text-lg font-semibold mb-6 [font-family:var(--font-press-start)]">Open Interest</h2>
       {mergedData.length === 0 ? (
         <h3 className="text-sm text-gray-400">
           No open interest data available for this token.

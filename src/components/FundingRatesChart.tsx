@@ -57,7 +57,7 @@ const FundingRatesChart: React.FC<Props> = ({ fundingRates }) => {
 
   return (
     <div className="bg-gray-800/10 text-gray-100 p-6 rounded-lg border border-white/5 max-w-[1160px] w-full">
-      <h2 className="text-xl font-semibold mb-6">Funding Rates</h2>
+      <h2 className="text-lg font-semibold mb-6 [font-family:var(--font-press-start)]">Funding Rates</h2>
       {mergedData.length === 0 ? (
         <h3 className="text-sm text-gray-400">
           No funding rates data available for this token.

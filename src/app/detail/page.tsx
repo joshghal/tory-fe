@@ -1,4 +1,6 @@
-"use client";
+"use client"
+
+import Navigation from '@/components/Navigation';
 import FinancialStatement from '@/components/FinancialStatements';
 import OpenInterestChart from '@/components/OpenInterestChart';
 import SocialMetricsChart from '@/components/SocialMetricsChart';
@@ -41,7 +43,8 @@ const TokenDetailPage = () => {
     isGetTokenTerminalAuthLoading,
     getLunarToken,
     lunarTokenResponse,
-    isGetLunarTokenLoading
+    isGetLunarTokenLoading,
+    pingTory
   } = useAuth();
 
 
@@ -73,6 +76,8 @@ const TokenDetailPage = () => {
     if (!isGetLunarTokenLoading) {
       getLunarToken()
     }
+
+    pingTory()
   }, [])
 
   const lunarToken: string = useMemo(() => {
@@ -89,11 +94,7 @@ const TokenDetailPage = () => {
 
   return (
     <div className='flex flex-col min-w-[360px] gap-[60px] p-10 items-center justify-center'>
-      <nav className="flex items-center justify-center w-full">
-        <div className="flex items-center gap-2 max-w-[1160px] w-full">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">TORY</h1>
-        </div>
-      </nav>
+      <Navigation />
       {isGetLunarTokenLoading && <div>Lunar Crush auth loading...</div>}
       {isGetTokenTerminalAuthLoading && <div>Token Terminal auth loading...</div>}
       {isGetTokenDetailLoading && <div>Getting Token Details...</div>}
@@ -107,7 +108,7 @@ const TokenDetailPage = () => {
         <div className='w-full flex flex-col gap-4'>
           <div className='flex gap-2'>
             <h2 className="text-lg font-semibold">{label}</h2>
-            <h2 className="text-lg font-semibold text-slate-500">{symbol.toUpperCase()}</h2>
+            <h2 className="text-sm font-semibold text-slate-500 [font-family:var(--font-press-start)]">{symbol.toUpperCase()}</h2>
           </div>
           <div className=' w-full h-[1px] bg-white/10'></div>
           {!isGetTokenDetailLoading && !isGetLunarTokenLoading && !isGetTokenTerminalAuthLoading && (

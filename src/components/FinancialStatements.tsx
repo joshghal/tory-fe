@@ -1,8 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { ProjectMetric } from '@/app/api/token-terminal/financial-statement/route';
+import useAccountStore from '@/hooks/useTokenInfoStore';
+import { useRequest } from 'ahooks';
+import { getFinancialsResult, sendFinancials } from '@/services/toryAgent';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
   data: ProjectMetric[];
@@ -11,6 +15,21 @@ interface Props {
 const FinancialStatement: React.FC<Props> = ({ data }) => {
   const [showDefinitions, setShowDefinitions] = useState(false);
   const [showChanges, setShowChanges] = useState(true);
+
+  const { toryApiStatus } = useAccountStore()
+  const { runAsync: postFinancialData, loading: isPostFinancialDataLoading } = useRequest(sendFinancials, {
+    manual: true,
+    onError: (err) => {
+      console.error(err)
+    }
+  })
+
+  const { run: getFinancialThoughts, data: financialThoughtsData, loading: isGetFinancialThoughtsLoading } = useRequest(getFinancialsResult, {
+    manual: true,
+    onError: (err) => {
+      console.error(err)
+    }
+  })
 
   const financialPromptData = React.useMemo(() => {
     if (data.length > 0) {
@@ -71,9 +90,26 @@ const FinancialStatement: React.FC<Props> = ({ data }) => {
   const periods = Array.from(new Set(data.map(d => d.timestamp_label_heading)))
     .sort((a, b) => new Date(periodMap[b]).getTime() - new Date(periodMap[a]).getTime());
 
+  const generateFinancialThoughts = useCallback(async () => {
+    const uuid = uuidv4();
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    await postFinancialData(
+      uuid,
+      timestamp,
+      financialPromptData
+    ).then(() => {
+      getFinancialThoughts(uuid, timestamp)
+    })
+  }, [financialPromptData])
+
+  const isLoading = useMemo(() => {
+    return isPostFinancialDataLoading || isGetFinancialThoughtsLoading
+  }, [isPostFinancialDataLoading, isGetFinancialThoughtsLoading])
+
   return (
     <div className="flex flex-col gap-6 w-full text-gray-200 max-w-[1160px]">
-      <h2 className="text-xl font-semibold">Financial Statements</h2>
+      <h2 className="text-lg font-semibold [font-family:var(--font-press-start)]">Financial Statements</h2>
       {data.length === 0 ? (
         <h3 className="text-sm text-gray-400">
           No financial statement data available for this token.
@@ -102,6 +138,40 @@ const FinancialStatement: React.FC<Props> = ({ data }) => {
                 Show changes
               </label>
             </div>
+          </div>
+
+          <div className="p-6 border border-white/10 rounded-xl bg-gray-900/40 flex flex-col gap-4">
+            <div className="flex items-center justify-between w-full">
+              <h3 className="text-lg font-semibold">AI Thoughts</h3>
+              <button
+                onClick={generateFinancialThoughts}
+                disabled={isLoading || !toryApiStatus}
+                className="text-sm bg-white text-black font-medium py-1.5 px-4 rounded hover:bg-gray-100 disabled:bg-gray-600"
+              >
+                {isLoading ? "Thinking..." : "Generate"}
+              </button>
+            </div>
+
+            {financialThoughtsData?.response && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <h4 className="text-sm text-green-400 font-semibold">Bullish Thoughts</h4>
+                  <ul className="list-disc list-inside text-sm">
+                    {JSON.parse(financialThoughtsData?.response)?.bullishThoughts?.map((b: any, i: any) => (
+                      <li key={i}>{b}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-sm text-red-400 font-semibold">Bearish Thoughts</h4>
+                  <ul className="list-disc list-inside text-sm">
+                    {JSON.parse(financialThoughtsData?.response)?.bearishThoughts?.map((b: any, i: any) => (
+                      <li key={i}>{b}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Table */}

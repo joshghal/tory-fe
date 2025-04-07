@@ -37,7 +37,7 @@ const SocialMetricsChart: React.FC<Props> = ({ data }) => {
 
   return (
     <div className="bg-gray-800/10 text-gray-100 p-6 rounded-lg border border-white/5 max-w-[1160px] w-full">
-      <h2 className="text-xl font-semibold mb-6">Social Metrics</h2>
+      <h2 className="text-lg font-semibold mb-6 [font-family:var(--font-press-start)]">Social Metrics</h2>
       {/* Metric Toggles */}
       <div className="flex flex-wrap gap-4 mb-6">
         {METRICS.map((metric) => (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { DateEntry } from '@/types/token';
 import {
@@ -15,6 +15,10 @@ import {
 } from 'recharts';
 import { avgFuturesData } from '@/app/api/arkham/futures-data/route';
 import { prepareUnlockAnalysisData } from '@/utils/tokenUnlockUtils';
+import useAccountStore from '@/hooks/useTokenInfoStore';
+import { useRequest } from 'ahooks';
+import { getUnlocksResult, sendUnlocks } from '@/services/toryAgent';
+import { v4 as uuidv4 } from 'uuid';
 
 export type FuturesData = {
   [exchange: string]: {
@@ -45,6 +49,22 @@ const TokenUnlocksChart: React.FC<Props> = ({
   const [selectedDate, setSelectedDate] = useState<string>('');
 
   const selectedList = view === 'past' ? pastUnlocks : upcomingUnlock;
+
+  const { toryApiStatus } = useAccountStore()
+
+  const { runAsync: postUnlockData, loading: isPostUnlockDataLoading } = useRequest(sendUnlocks, {
+    manual: true,
+    onError: (err) => {
+      console.error(err)
+    }
+  })
+
+  const { run: getUnlockThoughts, data: unlockThoughtsData, loading: isGetUnlockThoughtsLoading } = useRequest(getUnlocksResult, {
+    manual: true,
+    onError: (err) => {
+      console.error(err)
+    }
+  })
 
   useEffect(() => {
     if (selectedList.length > 0) {
@@ -114,7 +134,25 @@ const TokenUnlocksChart: React.FC<Props> = ({
     if (pastUnlocks.length > 0 && upcomingUnlock.length > 0 && openInterest.length > 0 && fundingRates.length > 0) {
       return JSON.stringify(JSON.stringify(prepareUnlockAnalysisData([...pastUnlocks, ...upcomingUnlock], openInterest, fundingRates)));
     }
+    return ''
   }, [pastUnlocks, upcomingUnlock, openInterest, fundingRates]);
+
+  const generateUnlockThoughts = useCallback(async () => {
+    const uuid = uuidv4();
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    await postUnlockData(
+      uuid,
+      timestamp,
+      tokenUnlockPromptData
+    ).then(() => {
+      getUnlockThoughts(uuid, timestamp)
+    })
+  }, [tokenUnlockPromptData])
+
+  const isLoading = useMemo(() => {
+    return isPostUnlockDataLoading || isGetUnlockThoughtsLoading
+  }, [isPostUnlockDataLoading, isGetUnlockThoughtsLoading])
 
   return (
     <div className="text-white space-y-4 w-full max-w-[1160px] min-w-[360px]">
@@ -182,8 +220,40 @@ const TokenUnlocksChart: React.FC<Props> = ({
             })}
           </div>
         )}
+      </div>
 
+      <div className="p-6 border border-white/10 rounded-xl bg-gray-900/40 flex flex-col gap-4">
+        <div className="flex items-center justify-between w-full">
+          <h3 className="text-lg font-semibold">AI Thoughts</h3>
+          <button
+            onClick={generateUnlockThoughts}
+            disabled={isLoading || !toryApiStatus}
+            className="text-sm bg-white text-black font-medium py-1.5 px-4 rounded hover:bg-gray-100 disabled:bg-gray-600"
+          >
+            {isLoading ? "Thinking..." : "Generate"}
+          </button>
+        </div>
 
+        {unlockThoughtsData?.response && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <h4 className="text-sm text-green-400 font-semibold">Bullish Thoughts</h4>
+              <ul className="list-disc list-inside text-sm">
+                {JSON.parse(unlockThoughtsData?.response)?.bullishThoughts?.map((b: any, i: any) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm text-red-400 font-semibold">Bearish Thoughts</h4>
+              <ul className="list-disc list-inside text-sm">
+                {JSON.parse(unlockThoughtsData?.response)?.bearishThoughts?.map((b: any, i: any) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="w-full h-[400px] rounded-xl p-4 bg-gray-800/10 border-1 border-white/5">

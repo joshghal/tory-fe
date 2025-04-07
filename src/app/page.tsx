@@ -1,5 +1,7 @@
 "use client"
 
+import Navigation from '@/components/Navigation';
+
 import useTokenInfoStore from '@/hooks/useTokenInfoStore';
 import { searchTokenUsingGet } from '@/services/custom';
 import { useRequest } from 'ahooks';
@@ -48,11 +50,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-items-center min-h-screen p-8 pb-20 gap-10 sm:p-20 min-w-[360px]">
-      <nav className="flex items-center justify-between w-full max-w-[1160px]">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">TORY</h1>
-        </div>
-      </nav>
+      <Navigation />
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full max-w-[1160px]">
         {
           isGetTokenAvailabilityLoading || isGetTokenTerminalAuthLoading ? <p>Loading</p> : (<form className='w-full max-w-[1160px]' onSubmit={(e) => {
@@ -82,7 +80,7 @@ export default function Home() {
           {!isGetTokenAvailabilityLoading && !isGetTokenTerminalAuthLoading && availableTokenData?.data.map((token) => (
             <div
               key={`${token.symbol}-${token.label}`}
-              className={`flex items-center gap-4 p-4 rounded-lg shadow-md ${token.arkhamSlug && token.cryptoRankSlug ? 'cursor-pointer' : 'opacity-50'} border-1 border-white/5 bg-gray-800/10 w-full`}
+              className={`flex items-center gap-4 p-5 rounded-lg shadow-md ${token.arkhamSlug && token.cryptoRankSlug ? 'cursor-pointer' : 'opacity-50'} border-1 border-white/5 bg-gray-800/10 w-full`}
               onClick={() => {
                 if (token.arkhamSlug && token.cryptoRankSlug) {
                   router.push(`/detail?arkhamSlug=${token.arkhamSlug}&cryptoRankSlug=${token.cryptoRankSlug}&lunarSlug=$${token.symbol}&image=${token.image}&label=${token.label}&symbol=${token.symbol}&tokenTerminalSlug=${token.tokenTerminalSlug}`);
@@ -91,9 +89,9 @@ export default function Home() {
             >
               <Image src={token.image} alt={token.label} width={50} height={50} />
               <div>
-                <div className='flex gap-2'>
+                <div className='flex gap-3'>
                   <h2 className="text-lg font-semibold">{token.label}</h2>
-                  <h2 className="text-lg font-semibold text-slate-500">{token.symbol.toUpperCase()}</h2>
+                  <h2 className="text-sm font-semibold text-slate-500 [font-family:var(--font-press-start)]">{token.symbol.toUpperCase()}</h2>
                 </div>
                 <div className="flex gap-2 mt-2">
                   {generateChip('Arkham', token.arkhamSlug)}
@@ -110,3 +108,4 @@ export default function Home() {
     </div>
   );
 }
+
