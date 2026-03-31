@@ -8,6 +8,8 @@ import { useState, useRef, useEffect, useCallback, createContext, useContext, us
 import axios from 'axios';
 import { gsap } from 'gsap';
 import HowItWorks, { HowItWorksButton } from './HowItWorks';
+
+const API = process.env.NEXT_PUBLIC_API_URL || '';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
@@ -72,7 +74,7 @@ interface OnchainEvents {
 }
 
 async function fetchProfile(id: string, symbol: string): Promise<TokenProfile & { _priceSeries?: { date: string; time?: string; price: number }[]; _onchainEvents?: OnchainEvents | null; _meta?: { name: string; symbol: string; image: string } | null }> {
-  const { data } = await axios.get(`/api/profile?id=${id}&symbol=${symbol}`);
+  const { data } = await axios.get(`${API}/profile?id=${id}&symbol=${symbol}`);
   const profile = data.data;
   profile._priceSeries = data.priceSeries;
   profile._onchainEvents = data.onchainEvents;
@@ -464,7 +466,7 @@ function OnchainLiveSection({ tokenId, symbol, profile }: { tokenId: string; sym
     };
 
     // ONE call to /api/onchain — returns cached, triggers fetch, or says no deployments
-    axios.get(`/api/onchain?id=${tokenId}`, { timeout: 10000, signal: abortController.signal })
+    axios.get(`${API}/onchain?id=${tokenId}`, { timeout: 10000, signal: abortController.signal })
       .then(res => {
         if (cancelled) return;
         const d = res.data;
@@ -489,14 +491,14 @@ function OnchainLiveSection({ tokenId, symbol, profile }: { tokenId: string; sym
           if (++pollCount > 40) return done();
 
           try {
-            const prog = await axios.get(`/api/onchain/progress?id=${tokenId}`, { timeout: 3000 });
+            const prog = await axios.get(`${API}/onchain/progress?id=${tokenId}`, { timeout: 3000 });
             if (cancelled) return;
             if (prog.data.status === 'fetching') {
               setProgress(prog.data);
             } else {
               // idle = done. Get the cached result.
               try {
-                const final = await axios.get(`/api/onchain?id=${tokenId}`, { timeout: 5000 });
+                const final = await axios.get(`${API}/onchain?id=${tokenId}`, { timeout: 5000 });
                 if (!cancelled && final.data?.summary?.totalTransfers > 0) {
                   done({ events: final.data.events, metrics: final.data.metrics });
                 } else {
@@ -1176,7 +1178,7 @@ function TradeList({ trades, direction }: { trades: BacktestTrade[]; direction: 
 async function fetchTradePrices(tokenId: string, symbol: string, from: string, to: string): Promise<number[]> {
   try {
     const { data } = await axios.get(
-      `/api/prices?id=${tokenId}&symbol=${symbol}&from=${from}&to=${to}`,
+      `${API}/prices?id=${tokenId}&symbol=${symbol}&from=${from}&to=${to}`,
       { timeout: 15000 }
     );
     return data.prices ?? [];
