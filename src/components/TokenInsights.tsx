@@ -466,7 +466,7 @@ function OnchainLiveSection({ tokenId, symbol, profile }: { tokenId: string; sym
     };
 
     // ONE call to /api/onchain — returns cached, triggers fetch, or says no deployments
-    axios.get(`${API}/onchain?id=${tokenId}`, { timeout: 10000, signal: abortController.signal })
+    axios.get(`${API}/onchain?id=${tokenId}`, { timeout: 120000, signal: abortController.signal })
       .then(res => {
         if (cancelled) return;
         const d = res.data;
