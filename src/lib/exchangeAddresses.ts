@@ -45,7 +45,6 @@ export const EXCHANGE_ADDRESSES: Record<string, string> = {
 
   // KuCoin
   '0xd6216fc19db775df9774a6e33526131da7d19a2c': 'KuCoin',
-  '0xeb2629a2734e272bcc07bda959863f316f4bd4cf': 'KuCoin',
   '0x1692e170361cefd1eb7240ec13d048fd9af6d667': 'KuCoin',
 
   // Gate.io
@@ -70,7 +69,7 @@ export const EXCHANGE_ADDRESSES: Record<string, string> = {
 
   // Crypto.com
   '0x6262998ced04146fa42253a5c0af90ca02dfd2a3': 'Crypto.com',
-  '0x46340b20830761efd32832a74d7169b29feb9758': 'Crypto.com',
+  '0xcffad3200574698b78f32232aa9d63eabd290703': 'Crypto.com',
 
   // Upbit
   '0x390de26d772d2e2005c6d1d24afc902bae37a4bb': 'Upbit',
