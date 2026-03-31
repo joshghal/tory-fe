@@ -22,6 +22,36 @@ function highlightLevels(text: string) {
     return part;
   });
 }
+/** Show max N items with expand/collapse toggle */
+function ExpandableList({ items, max = 3, renderItem, className = '' }: {
+  items: any[];
+  max?: number;
+  renderItem: (item: any, index: number) => React.ReactNode;
+  className?: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? items : items.slice(0, max);
+  const remaining = items.length - max;
+
+  return (
+    <div className={className}>
+      {visible.map((item, i) => renderItem(item, i))}
+      {remaining > 0 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="mt-4 px-4 py-2.5 -ml-4 text-xs font-mono text-[var(--accent)] hover:text-[var(--accent-light)] hover:bg-[var(--accent)]/5 transition-colors flex items-center gap-1.5 rounded-lg"
+        >
+          {expanded ? (
+            <>Show less <span className="text-[var(--text-dim)]">↑</span></>
+          ) : (
+            <>Show {remaining} more <span className="text-[var(--text-dim)]">↓</span></>
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function fmt(n: number): string {
   const a = Math.abs(n);
   if (a >= 1e12) return (n / 1e12).toFixed(1) + 'T';
@@ -331,8 +361,10 @@ function Signals({ p }: { p: TokenProfile }) {
       {sig.length === 0 ? (
         <p className="text-[var(--text-dim)]">No statistically proven signals in this window.</p>
       ) : (
-        <div>
-          {sig.map((c) => {
+        <ExpandableList
+          items={sig}
+          max={3}
+          renderItem={(c, _i) => {
             const r = c.r_7d ?? c.r_14d ?? 0;
             const absR = Math.abs(r);
             const strength = absR > 0.5 ? 'Very strong' : absR > 0.3 ? 'Strong' : absR > 0.15 ? 'Moderate' : 'Weak';
@@ -363,8 +395,8 @@ function Signals({ p }: { p: TokenProfile }) {
                 </p>
               </div>
             );
-          })}
-        </div>
+          }}
+        />
       )}
 
       {nosig.length > 0 && (
@@ -744,11 +776,12 @@ function StrategiesSection({ backtests }: { backtests: StrategyBacktest[] }) {
   }
 
   return (
-    <div className="s space-y-10">
-      {backtests.map((bt, i) => (
-        <Strategy key={i} bt={bt} idx={i} />
-      ))}
-    </div>
+    <ExpandableList
+      items={backtests}
+      max={3}
+      className="s space-y-10"
+      renderItem={(bt, i) => <Strategy key={i} bt={bt} idx={i} />}
+    />
   );
 }
 
@@ -935,17 +968,23 @@ function PatternsSection({ rules }: { rules: AssociationRule[] }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-1">
         <div>
           <span className="text-xs font-mono text-green-400 uppercase tracking-[0.15em]">Bullish ({buy.length})</span>
-          <div className="mt-3 space-y-3">
-            {buy.map((r, i) => <PatternLine key={i} rule={r} />)}
-            {buy.length === 0 && <p className="text-xs text-[var(--text-dim)]">—</p>}
-          </div>
+          <ExpandableList
+            items={buy}
+            max={3}
+            className="mt-3 space-y-3"
+            renderItem={(r, i) => <PatternLine key={i} rule={r} />}
+          />
+          {buy.length === 0 && <p className="text-xs text-[var(--text-dim)] mt-3">—</p>}
         </div>
         <div>
           <span className="text-xs font-mono text-red-400 uppercase tracking-[0.15em]">Bearish ({sell.length})</span>
-          <div className="mt-3 space-y-3">
-            {sell.map((r, i) => <PatternLine key={i} rule={r} />)}
-            {sell.length === 0 && <p className="text-xs text-[var(--text-dim)]">—</p>}
-          </div>
+          <ExpandableList
+            items={sell}
+            max={3}
+            className="mt-3 space-y-3"
+            renderItem={(r, i) => <PatternLine key={i} rule={r} />}
+          />
+          {sell.length === 0 && <p className="text-xs text-[var(--text-dim)] mt-3">—</p>}
         </div>
       </div>
     </div>
@@ -1422,14 +1461,8 @@ export default function TokenInsights({ tokenId, onMeta }: { tokenId: string; on
   }, []);
 
   useEffect(() => {
-    if (profile && ref.current) {
-      gsap.from(ref.current.querySelectorAll('.s'), {
-        y: 24, opacity: 0, duration: 0.6,
-        ease: 'power3.out', stagger: 0.08,
-      });
-      if (profile._meta && onMeta) {
-        onMeta(profile._meta);
-      }
+    if (profile && profile._meta && onMeta) {
+      onMeta(profile._meta);
     }
   }, [profile]);
 
@@ -1468,7 +1501,6 @@ export default function TokenInsights({ tokenId, onMeta }: { tokenId: string; on
           <div className="section-divider" />
 
           <OnchainLiveSection tokenId={tokenId} symbol={profile.symbol} profile={profile} />
-
 
           <div className="section-divider" />
 
