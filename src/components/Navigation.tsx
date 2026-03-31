@@ -1,19 +1,17 @@
-import Image from 'next/image';
-import Tory from '@public/tory-logo.png';
+'use client';
+
 import Link from 'next/link';
+import Image from 'next/image';
 
-const Navigation = () => {
+export default function Navigation() {
   return (
-    <nav className="flex items-center justify-between w-full max-w-[1160px]">
-      <Link href="/" className="flex items-center gap-1">
-        <Image src={Tory.src} alt="tory-logo" width={36} height={36} />
-        <h1 className="text-2xl text-gray-900 dark:text-white [font-family:var(--font-press-start)]">
-          TORY
-        </h1>
-
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 nav-frosted px-6 py-3 flex items-center gap-8">
+      <Link href="/" className="flex items-center gap-2 text-sm font-bold tracking-tight text-[var(--accent)]" style={{ fontFamily: 'var(--font-display)' }}>
+        <Image src="/tory-logo.png" alt="Tory" width={28} height={28} className="rounded-full" />
+        TORY
       </Link>
+      <div className="w-px h-4 bg-[var(--accent)]/20" />
+      <span className="tag-muted hidden sm:block">Crypto Intelligence</span>
     </nav>
   );
-};
-
-export default Navigation;
+}

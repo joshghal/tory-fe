@@ -2,7 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['static.arkhamintelligence.com'],
+    remotePatterns: [
+      {
+        hostname: 'static.arkhamintelligence.com',
+      },
+      {
+        hostname: 'coin-images.coingecko.com',
+      },
+    ],
   },
 };
 

@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Silkscreen, Press_Start_2P } from "next/font/google";
+import { Space_Grotesk, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,32 +19,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const pressStart = Press_Start_2P({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-press-start",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "TORY - AI Insights for Tokenomics, Unlocks & Financials",
-  description: "TORY is a smart assistant that provides AI-generated insights for tokenomics, unlock events, and financial metrics in Web3 projects.",
-  keywords: [
-    "TORY",
-    "crypto analysis",
-    "tokenomics",
-    "web3 analytics",
-    "AI token insights",
-    "token unlocks",
-    "crypto financials",
-    "decentralized AI",
-    "blockchain analytics"
-  ],
-  icons: {
-    icon: "/favicon.ico"
-  }
+  title: "TORY — Crypto Intelligence",
+  description: "Statistical analysis engine. 31 metrics. 7 data sources. Backtested strategies for every token.",
 };
-
 
 export default function RootLayout({
   children,
@@ -46,9 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} antialiased`}
-      >
+      <body className={`${spaceGrotesk.variable} ${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>
     </html>

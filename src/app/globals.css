@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* nvg8 color system */
+  --bg: #0e0e0e;
+  --bg-elevated: #161616;
+  --text: #fdf9f0;
+  --text-muted: rgba(253, 249, 240, 0.65);
+  --text-dim: rgba(253, 249, 240, 0.4);
+  --border: rgba(253, 249, 240, 0.1);
+  --border-hover: rgba(253, 249, 240, 0.2);
+
+  /* accent palette — from TORY logo, brightened for dark bg contrast */
+  --accent: #4DA8FF;            /* primary — bright sky blue */
+  --accent-light: #7DC4FF;      /* hover/glow state */
+  --accent-dark: #1A3A5C;       /* logo navy — deep accents */
+  --accent-warm: #D4915C;       /* logo skin tone — secondary accent */
+  --accent-lime: #c7ff69;       /* kept for bullish signals */
+  --accent-orange: #ff6d38;
+  --accent-purple: #7a78ff;
+
+  /* easing */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.84, 0, 0.16, 1);
+  --ease-smooth: cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* spacing */
+  --side-margin: 80px;
+  --side-margin-mobile: 24px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Lenis smooth scroll */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display heading — nvg8 style */
+.display {
+  font-family: var(--font-display), var(--font-geist-sans), system-ui;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+
+.display-xl { font-size: clamp(4rem, 10vw, 10rem); }
+.display-lg { font-size: clamp(3rem, 7vw, 7rem); }
+.display-md { font-size: clamp(2rem, 5vw, 4.5rem); }
+.display-sm { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+
+/* Subtle card */
+.card-dark {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  transition: border-color 0.3s var(--ease-out);
+}
+.card-dark:hover {
+  border-color: var(--border-hover);
+}
+
+/* CTA button — lime accent */
+.btn-primary {
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 100px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+}
+.btn-primary:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* Ghost button */
+.btn-ghost {
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 10px 20px;
+  border-radius: 100px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+}
+.btn-ghost:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+/* Frosted nav */
+.nav-frosted {
+  background: rgba(14, 14, 14, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+}
+
+/* Scroll reveal animation classes (applied by GSAP) */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+}
+
+/* Split word animation */
+.word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+}
+.word.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Accent tags */
+.tag-lime {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tag-muted {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(253, 249, 240, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(253, 249, 240, 0.3);
+}
+
+/* Section accent divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(to right, var(--accent), transparent 60%);
+  opacity: 0.2;
+}
+
+/* Marquee */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Selection */
+::selection {
+  background: var(--accent);
+  color: var(--bg);
 }
