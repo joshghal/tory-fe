@@ -391,6 +391,11 @@ export async function GET(request: NextRequest) {
     // Fetch coin detail (cached — shared with onchain route, no extra API call)
     const coinDetail = await getCoinDetail(id);
 
+    // Override symbol with CoinGecko's actual symbol (e.g. "QNT" instead of "QUANT-NETWORK")
+    if (coinDetail?.symbol) {
+      profile.symbol = coinDetail.symbol.toUpperCase();
+    }
+
     const responseData = {
       message: 'SUCCESS',
       status: 200,

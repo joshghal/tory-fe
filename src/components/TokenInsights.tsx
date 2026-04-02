@@ -466,7 +466,7 @@ function OnchainLiveSection({ tokenId, symbol, profile }: { tokenId: string; sym
     };
 
     // ONE call to /api/onchain — returns cached, triggers fetch, or says no deployments
-    axios.get(`${API}/onchain?id=${tokenId}&mock=1`, { timeout: 120000, signal: abortController.signal })
+    axios.get(`${API}/onchain?id=${tokenId}`, { timeout: 120000, signal: abortController.signal })
       .then(res => {
         if (cancelled) return;
         const d = res.data;
@@ -498,13 +498,13 @@ function OnchainLiveSection({ tokenId, symbol, profile }: { tokenId: string; sym
             } else {
               // idle = done. Get the cached result.
               try {
-                const final = await axios.get(`${API}/onchain?id=${tokenId}&mock=1`, { timeout: 5000 });
+                const final = await axios.get(`${API}/onchain?id=${tokenId}`, { timeout: 10000 });
                 if (!cancelled && final.data?.summary?.totalTransfers > 0) {
                   done({ events: final.data.events, metrics: final.data.metrics });
                 } else {
                   done();
                 }
-              } catch { done(); }
+              } catch { if (!cancelled) done(); }
             }
           } catch {}
         }, 3000);
@@ -594,8 +594,9 @@ function OnchainSection({ p, events, rawMetrics }: { p: TokenProfile; events?: O
     events.vestingCandidates?.length > 0 ||
     events.burnSpike?.detected
   );
+  const hasMetrics = rawMetrics && Object.keys(rawMetrics).length > 0;
 
-  if (onchainCorrelations.length === 0 && !hasEvents) {
+  if (onchainCorrelations.length === 0 && !hasEvents && !hasMetrics) {
     return (
       <p className="text-xs text-[var(--text-dim)] font-mono">
         No on-chain data available. Token may not have ERC20 deployments on supported chains.
