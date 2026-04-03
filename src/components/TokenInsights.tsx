@@ -459,14 +459,16 @@ function OnchainLiveSection({ tokenId, symbol, profile }: { tokenId: string; sym
     };
 
     const done = (data?: { events: OnchainEvents | null; metrics?: Record<string, { date: string; value: number }[]> }) => {
-      if (data) setOnchainData(data);
+      if (data) {
+        setOnchainData(data);
+      }
       setPolling(false);
       if (poller) { clearInterval(poller); poller = null; }
       if (timer) { clearInterval(timer); timer = null; }
     };
 
     // ONE call to /api/onchain — returns cached, triggers fetch, or says no deployments
-    axios.get(`${API}/onchain?id=${tokenId}`, { timeout: 120000, signal: abortController.signal })
+    axios.get(`${API}/onchain?id=${tokenId}`, { timeout: 600000, signal: abortController.signal })
       .then(res => {
         if (cancelled) return;
         const d = res.data;
@@ -488,7 +490,7 @@ function OnchainLiveSection({ tokenId, symbol, profile }: { tokenId: string; sym
         let pollCount = 0;
         poller = setInterval(async () => {
           if (cancelled) return;
-          if (++pollCount > 40) return done();
+          if (++pollCount > 300) return done(); // 300 × 3s = 15 minutes max
 
           try {
             const prog = await axios.get(`${API}/onchain/progress?id=${tokenId}`, { timeout: 3000 });
@@ -575,7 +577,7 @@ function OnchainLiveSection({ tokenId, symbol, profile }: { tokenId: string; sym
           )}
 
           <p className="text-[12px] text-[var(--text-dim)] mt-4">
-            First scan takes ~60-90s. Results cached for 1 hour.
+            First scan takes ~90-150s. Results cached for 1 hour.
           </p>
         </div>
       ) : (
@@ -675,9 +677,10 @@ function OnchainSection({ p, events, rawMetrics }: { p: TokenProfile; events?: O
         </div>
       )}
 
-      {/* Correlation grid */}
-      {onchainCorrelations.length > 0 && (
+      {/* Metric charts — from correlations if available, else from rawMetrics directly */}
+      {(onchainCorrelations.length > 0 || hasMetrics) && (
         <div className="space-y-1">
+          {/* Metrics with correlations */}
           {onchainCorrelations
             .sort((a, b) => Math.abs(b.r_7d ?? b.r_14d ?? 0) - Math.abs(a.r_7d ?? a.r_14d ?? 0))
             .map(c => {
@@ -689,7 +692,7 @@ function OnchainSection({ p, events, rawMetrics }: { p: TokenProfile; events?: O
 
               // Compute stats from raw time series
               const series = rawMetrics?.[c.metric];
-              const last7 = series?.slice(-7);
+              const last7 = series?.slice(-14);
               const today = series?.[series.length - 1]?.value;
               const allVals = series?.map(p => p.value).sort((a, b) => a - b);
               const median = allVals && allVals.length > 0 ? allVals[Math.floor(allVals.length / 2)] : undefined;
@@ -764,6 +767,65 @@ function OnchainSection({ p, events, rawMetrics }: { p: TokenProfile; events?: O
                 </div>
               );
             })}
+          {/* Metrics from rawMetrics that have no correlation yet */}
+          {hasMetrics && (() => {
+            const correlatedKeys = new Set(onchainCorrelations.map(c => c.metric));
+            const uncorrelated = Object.entries(rawMetrics!)
+              .filter(([key]) => ONCHAIN_KEYS.has(key) && !correlatedKeys.has(key));
+            if (uncorrelated.length === 0) return null;
+            return uncorrelated.map(([key, series]) => {
+              const last14 = series.slice(-14);
+              const today = series[series.length - 1]?.value;
+              const allVals = series.map(p => p.value).sort((a, b) => a - b);
+              const median = allVals.length > 0 ? allVals[Math.floor(allVals.length / 2)] : undefined;
+              const todayVsMedian = today !== undefined && median !== undefined && median !== 0
+                ? ((today - median) / Math.abs(median)) * 100 : undefined;
+              const label = ONCHAIN_EXPLAINERS[key]?.desc || key;
+              const BAR_H = 48;
+              const maxVal = Math.max(...last14.map(p => p.value), median || 0);
+              return (
+                <div key={key} className="py-3 border-b border-[var(--border)] last:border-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm text-[var(--text)]">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</span>
+                  </div>
+                  <p className="text-[12px] text-[var(--text-dim)]">{label}</p>
+                  {last14.length > 0 && (
+                    <div className="mt-3 flex items-end gap-2">
+                      <div className="flex items-end gap-[3px] flex-1" style={{ height: BAR_H }}>
+                        {last14.map((p, i) => {
+                          const hPx = maxVal > 0 ? Math.max((p.value / maxVal) * BAR_H, 3) : 3;
+                          const prev = i > 0 ? last14[i - 1].value : p.value;
+                          const isToday = i === last14.length - 1;
+                          const barColor = isToday ? 'bg-[var(--accent)]' : p.value > prev ? 'bg-green-400/60' : p.value < prev ? 'bg-red-400/60' : 'bg-[var(--text-dim)]/30';
+                          return (
+                            <div key={p.date} className="flex-1 flex flex-col items-center gap-1">
+                              <div className={`w-full rounded-sm ${barColor} transition-all`} style={{ height: hPx }} />
+                              <span className={`text-[10px] font-mono ${isToday ? 'text-[var(--text)]' : 'text-[var(--text-dim)]'}`}>{p.date.slice(8)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="shrink-0 text-right pl-3 border-l border-[var(--border)]">
+                        <span className="text-[10px] text-[var(--text-dim)] block">today</span>
+                        <span className="text-sm font-mono font-bold text-[var(--text)]">{fmt(today!)}</span>
+                        {median !== undefined && (
+                          <>
+                            <span className="text-[10px] text-[var(--text-dim)] block mt-1">median</span>
+                            <span className="text-[12px] font-mono text-[var(--text-muted)]">{fmt(median)}</span>
+                            {todayVsMedian !== undefined && (
+                              <span className={`text-[12px] font-mono block ${todayVsMedian > 20 ? 'text-green-400' : todayVsMedian < -20 ? 'text-red-400' : 'text-[var(--text-dim)]'}`}>
+                                {todayVsMedian > 0 ? '+' : ''}{todayVsMedian.toFixed(0)}%
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            });
+          })()}
         </div>
       )}
     </div>
@@ -1456,7 +1518,7 @@ function SectionTag({ children }: { children: React.ReactNode }) {
 // ═════════════════════════════════════════════════════════════
 export default function TokenInsights({ tokenId, onMeta }: { tokenId: string; onMeta?: (m: { name: string; symbol: string; image: string }) => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { data: profile, loading } = useRequest(() => fetchProfile(tokenId, tokenId.toUpperCase()));
+  const { data: profile, loading, refresh: refreshProfile } = useRequest(() => fetchProfile(tokenId, tokenId.toUpperCase()));
   const [tradeModal, setTradeModal] = useState<TradeModalState>(null);
 
   const openTrade = useCallback((trade: BacktestTrade, idx: number, direction: 'buy' | 'sell') => {

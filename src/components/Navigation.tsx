@@ -46,10 +46,7 @@ export default function Navigation() {
             <a href="#features" className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors rounded-full hover:bg-[var(--text)]/5 whitespace-nowrap">
               Features
             </a>
-            <a href="#how-it-works" className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors rounded-full hover:bg-[var(--text)]/5 whitespace-nowrap">
-              How It Works
-            </a>
-            <a href="#faq" className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors rounded-full hover:bg-[var(--text)]/5 whitespace-nowrap">
+<a href="#faq" className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors rounded-full hover:bg-[var(--text)]/5 whitespace-nowrap">
               FAQ
             </a>
           </>
@@ -101,7 +98,6 @@ export default function Navigation() {
             {isHome ? (
               <>
                 <a href="#features" className="menu-item display text-4xl text-[var(--text)] py-3 hover:text-[var(--accent)] transition-colors">Features</a>
-                <a href="#how-it-works" className="menu-item display text-4xl text-[var(--text)] py-3 hover:text-[var(--accent)] transition-colors">How It Works</a>
                 <a href="#faq" className="menu-item display text-4xl text-[var(--text)] py-3 hover:text-[var(--accent)] transition-colors">FAQ</a>
               </>
             ) : (

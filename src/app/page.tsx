@@ -25,27 +25,21 @@ function Marquee({ children, speed = 30, reverse = false }: { children: React.Re
   );
 }
 
-// ─── FAQ Chat Bubble (nvg8 style) ────────────────────────────
-function FAQBubble({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
+// ─── FAQ Accordion ───────────────────────────────────────────
+function FAQItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
   return (
-    <div className="mb-4">
-      {/* Question — dark pill, left-aligned */}
+    <div className="border-b border-[var(--border)]">
       <button
         onClick={onToggle}
-        className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--bg)] text-[var(--text)] text-sm font-semibold hover:bg-[var(--bg)]/90 transition-all mb-2"
-        style={{ fontFamily: 'var(--font-display)' }}
+        className="w-full flex items-center justify-between py-5 text-left group"
       >
-        {q}
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>
-          <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
+        <span className={`text-base sm:text-lg transition-colors ${open ? 'text-[var(--text)]' : 'text-[var(--text-muted)]'} group-hover:text-[var(--text)]`} style={{ fontFamily: 'var(--font-display)' }}>
+          {q}
+        </span>
+        <span className={`text-[var(--text-dim)] text-xl leading-none transition-transform duration-300 shrink-0 ml-4 ${open ? 'rotate-45' : ''}`}>+</span>
       </button>
-
-      {/* Answer — light bubble, right-aligned */}
-      <div className={`overflow-hidden transition-all duration-500 ${open ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'}`} style={{ transitionTimingFunction: 'var(--ease-out)' }}>
-        <div className="ml-8 sm:ml-12 p-5 rounded-2xl bg-[var(--bg-cream)] text-[var(--bg)] text-sm leading-relaxed max-w-[550px]">
-          {a}
-        </div>
+      <div className={`overflow-hidden transition-all duration-400 ${open ? 'max-h-[300px] pb-5' : 'max-h-0'}`} style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
+        <p className="text-sm text-[var(--text-muted)] leading-relaxed max-w-[600px]">{a}</p>
       </div>
     </div>
   );
@@ -64,17 +58,17 @@ const FAQ_DATA = [
 function FAQSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   return (
-    <section id="faq" className="py-24 sm:py-32 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)]" style={{ background: '#2B6CB0' }}>
-      <div className="max-w-[800px] mx-auto">
-        <div className="faq-reveal mb-4">
-          <span className="text-xs font-mono text-[var(--bg)]/50 uppercase tracking-[0.15em]">You ask, we answer</span>
+    <section id="faq" className="py-24 sm:py-32 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)]">
+      <div className="max-w-[700px] mx-auto">
+        <div className="faq-reveal mb-12">
+          <span className="text-xs font-mono text-[var(--accent)] uppercase tracking-[0.15em] block mb-4">FAQ</span>
+          <h2 className="display" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 0.95 }}>
+            Common questions
+          </h2>
         </div>
-        <h2 className="faq-reveal display text-[var(--bg)] mb-16" style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', lineHeight: 0.95 }}>
-          Most Common<br />Questions
-        </h2>
-        <div className="faq-reveal">
+        <div className="faq-reveal border-t border-[var(--border)]">
           {FAQ_DATA.map((item, i) => (
-            <FAQBubble
+            <FAQItem
               key={i}
               q={item.q}
               a={item.a}
@@ -187,53 +181,22 @@ function HeroSection({ onAnalyze }: { onAnalyze: () => void }) {
       y: 60, opacity: 0, scale: 0.95,
       duration: 0.9, ease: 'power3.out', stagger: 0.08, delay: 0.4,
     });
-
-    const cardData = Array.from(container.querySelectorAll('.collage-card')).map(el => ({
-      el: el as HTMLElement,
-      depth: parseFloat((el as HTMLElement).dataset.depth || '0.2'),
-      rotate: (el as HTMLElement).dataset.rotate || '0deg',
-    }));
-
-    let ticking = false;
-    function onScroll() {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const sy = window.scrollY;
-        for (const c of cardData) {
-          c.el.style.transform = `rotate(${c.rotate}) translate3d(0, ${-sy * c.depth}px, 0)`;
-        }
-        ticking = false;
-      });
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {};
   }, []);
 
   return (
     <section className="min-h-[110vh] relative overflow-hidden">
-      {/* Gradient background — blurred orbs + diagonal silk texture */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute top-[-30%] right-[-20%] w-[90%] h-[130%]" style={{
-          background: 'conic-gradient(from 220deg at 70% 40%, rgba(79,106,255,0.22) 0deg, rgba(99,102,241,0.15) 60deg, rgba(123,147,255,0.18) 120deg, transparent 200deg, transparent 360deg)',
-          filter: 'blur(80px)',
+      {/* Gradient background — radial gradients (no runtime blur) */}
+      <div className="absolute inset-0 z-0 overflow-hidden will-change-auto">
+        <div className="absolute top-[-20%] right-[-10%] w-[80%] h-[120%]" style={{
+          background: 'radial-gradient(ellipse at 70% 40%, rgba(79,106,255,0.18) 0%, rgba(99,102,241,0.08) 30%, transparent 65%)',
         }} />
-        <div className="absolute top-[-10%] right-[-15%] w-[80%] h-[110%]" style={{
-          background: 'conic-gradient(from 180deg at 60% 50%, transparent 0deg, rgba(59,130,246,0.1) 90deg, rgba(147,130,220,0.08) 150deg, transparent 220deg, transparent 360deg)',
-          filter: 'blur(100px)',
+        <div className="absolute top-[0%] right-[0%] w-[60%] h-[80%]" style={{
+          background: 'radial-gradient(ellipse at 50% 50%, rgba(59,130,246,0.1) 0%, transparent 60%)',
         }} />
         <div className="absolute top-[5%] right-[8%] w-[35%] h-[30%]" style={{
-          background: 'radial-gradient(ellipse at center, rgba(123,147,255,0.2) 0%, transparent 70%)',
-          filter: 'blur(60px)',
+          background: 'radial-gradient(ellipse at center, rgba(123,147,255,0.15) 0%, transparent 65%)',
         }} />
-        <svg className="absolute opacity-[0.035] mix-blend-overlay" style={{ top: '-50%', left: '-50%', width: '200%', height: '200%', transform: 'rotate(-35deg)' }} xmlns="http://www.w3.org/2000/svg">
-          <filter id="silk">
-            <feTurbulence type="fractalNoise" baseFrequency="0.001 0.15" numOctaves="5" seed="8" stitchTiles="stitch" />
-            <feColorMatrix type="saturate" values="0" />
-          </filter>
-          <rect width="100%" height="100%" filter="url(#silk)" />
-        </svg>
       </div>
 
       {/* Hero text */}
@@ -373,8 +336,21 @@ function SkeletonRevealSection() {
   }, []);
 
   return (
-    <section className="py-32 sm:py-40 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)] border-t border-[var(--border)]">
-      <div ref={sectionRef} className="max-w-[900px] mx-auto text-center">
+    <section className="relative py-32 sm:py-40 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)] border-t border-[var(--border)] overflow-hidden">
+      {/* Character background */}
+      <Image
+        src="/tory-character.png"
+        alt=""
+        width={928}
+        height={1138}
+        className="absolute right-[-5%] sm:right-[5%] top-1/2 -translate-y-1/2 w-[50%] sm:w-[35%] max-w-[450px] object-contain pointer-events-none select-none"
+        style={{
+          opacity: 0.12,
+          maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)',
+        }}
+      />
+      <div ref={sectionRef} className="relative z-10 max-w-[900px] mx-auto text-center">
         <div className="flex flex-wrap justify-center gap-x-[0.3em] gap-y-[0.1em]" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1.1 }}>
           {REVEAL_WORDS.map((w, i) => (
             <span key={i} className="relative inline-block">
@@ -417,42 +393,35 @@ export default function Home() {
         ease: 'power3.out', stagger: 0.12, delay: 0.3,
       });
 
-      // Intro section — text reveal on scroll
-      gsap.from('.intro-text', {
-        scrollTrigger: { trigger: '.section-intro', start: 'top 60%', once: true },
-        y: 60, opacity: 0, duration: 1.2, ease: 'power3.out',
-      });
+      // ── Chapter illustration animations (no opacity blink) ──
 
-      // Data pills — stagger in
-      gsap.from('.data-pill', {
-        scrollTrigger: { trigger: '.data-pills-grid', start: 'top 75%', once: true },
-        y: 20, opacity: 0, duration: 0.5, ease: 'power3.out', stagger: 0.03,
-      });
-
-      // Feature chapters — slide in
-      gsap.utils.toArray<HTMLElement>('.chapter-reveal').forEach((el) => {
-        gsap.from(el, {
-          scrollTrigger: { trigger: el, start: 'top 75%', once: true },
-          y: 80, opacity: 0, duration: 1, ease: 'power3.out',
+      // Score bar fill + number count
+      const scoreBar = document.querySelector('.score-bar') as HTMLElement;
+      const scoreNum = document.querySelector('.score-number');
+      if (scoreBar) {
+        gsap.to(scoreBar, {
+          width: '68%', duration: 1.5, ease: 'power3.out',
+          scrollTrigger: { trigger: scoreBar, start: 'top 85%', once: true },
         });
+      }
+      if (scoreNum) {
+        gsap.fromTo(scoreNum, { innerText: '0' }, {
+          innerText: '68', duration: 1.5, ease: 'power3.out', snap: { innerText: 1 },
+          scrollTrigger: { trigger: scoreNum, start: 'top 85%', once: true },
+        });
+      }
+
+      // Heatmap cells scale in
+      gsap.from('.heatmap-cell', {
+        scrollTrigger: { trigger: '.heatmap-cell', start: 'top 85%', once: true },
+        scaleX: 0, duration: 0.5, ease: 'power3.out',
+        stagger: 0.06, transformOrigin: 'left center',
       });
 
-      // Stats reveal
-      gsap.from('.stat-section', {
-        scrollTrigger: { trigger: '.stat-section', start: 'top 75%', once: true },
-        y: 40, opacity: 0, duration: 1, ease: 'power3.out',
-      });
-
-      // FAQ reveal
-      gsap.from('.faq-reveal', {
-        scrollTrigger: { trigger: '.faq-reveal', start: 'top 75%', once: true },
-        y: 40, opacity: 0, duration: 0.8, ease: 'power3.out',
-      });
-
-      // Footer CTA
-      gsap.from('.footer-cta', {
-        scrollTrigger: { trigger: '.footer-cta', start: 'top 80%', once: true },
-        y: 60, opacity: 0, duration: 1, ease: 'power3.out',
+      // Terminal lines slide in
+      gsap.from('.terminal-line', {
+        scrollTrigger: { trigger: '.terminal-line', start: 'top 85%', once: true },
+        x: -20, opacity: 0, duration: 0.4, ease: 'power2.out', stagger: 0.15,
       });
     });
     return () => ctx.revert();
@@ -511,30 +480,51 @@ export default function Home() {
                 The market regime tells you historically what happens next.
               </p>
             </div>
-            {/* Feature preview — mirrors actual UI */}
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6 sm:p-8">
-              <div className="flex items-baseline gap-4 mb-4">
-                <span className="text-3xl font-bold text-green-400" style={{ fontFamily: 'var(--font-display)' }}>Panic</span>
-                <span className="text-xs font-mono text-[var(--text-dim)] uppercase tracking-[0.15em]">Market regime</span>
+            {/* Score & Regime — matches real product */}
+            <div>
+              {/* Regime header */}
+              <div className="mb-5">
+                <div className="flex items-baseline gap-3 mb-2">
+                  <span className="text-3xl font-bold text-green-400" style={{ fontFamily: 'var(--font-display)' }}>Panic</span>
+                  <span className="text-[10px] font-mono text-[var(--text-dim)] uppercase tracking-wider">market regime</span>
+                </div>
+                <p className="text-xs text-[var(--text-dim)]">Extreme fear + high volume. Best buying opportunities historically appear here.</p>
               </div>
-              <p className="text-xs text-[var(--text-muted)] leading-relaxed mb-8">Extreme fear + high volume. Best buying opportunities historically appear here.</p>
-              <div className="flex flex-wrap gap-6 text-xs font-mono text-[var(--text-dim)]">
-                <div>
-                  <span className="text-lg font-bold text-[var(--text)]">91</span>
-                  <span className="block mt-0.5">days analyzed</span>
+              {/* Stats row */}
+              <div className="flex gap-6 mb-6 pb-5 border-b border-[var(--border)]">
+                {[
+                  { v: '91', l: 'days analyzed' },
+                  { v: '7/18', l: 'significant' },
+                  { v: '10', l: 'strategies' },
+                  { v: '1', l: 'active now' },
+                ].map(s => (
+                  <div key={s.l} className="text-[11px] font-mono text-[var(--text-dim)]">
+                    <span className="text-lg font-bold text-[var(--text)] block">{s.v}</span>{s.l}
+                  </div>
+                ))}
+              </div>
+              {/* Score bar */}
+              <div className="mb-5">
+                <div className="flex items-baseline justify-between mb-2">
+                  <span className="text-[10px] font-mono text-[var(--text-dim)] uppercase tracking-wider">composite score</span>
+                  <span className="score-number text-sm font-mono font-bold text-green-400">0</span>
                 </div>
-                <div>
-                  <span className="text-lg font-bold text-[var(--text)]">8/15</span>
-                  <span className="block mt-0.5">metrics significant</span>
+                <div className="h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
+                  <div className="score-bar h-full rounded-full bg-gradient-to-r from-green-500 to-green-400" style={{ width: '0%' }} />
                 </div>
-                <div>
-                  <span className="text-lg font-bold text-[var(--text)]">12</span>
-                  <span className="block mt-0.5">strategies tested</span>
-                </div>
-                <div>
-                  <span className="text-lg font-bold text-[var(--text)]">2</span>
-                  <span className="block mt-0.5">active now</span>
-                </div>
+              </div>
+              {/* Briefing bullets */}
+              <div className="space-y-2">
+                {[
+                  { icon: '↑', color: 'text-green-400', text: 'Bottom line: buy signals are active' },
+                  { icon: '!', color: 'text-yellow-400', text: 'Volatility (14d) is your strongest bullish indicator' },
+                  { icon: '↓', color: 'text-red-400', text: 'Fear & Greed contrarian signal: extreme fear = opportunity' },
+                ].map((b, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className={`text-xs font-bold ${b.color} shrink-0 mt-0.5`}>{b.icon}</span>
+                    <span className="text-xs text-[var(--text-muted)]">{b.text}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -556,72 +546,108 @@ export default function Home() {
                 Only statistically significant results (p &lt; 0.05) survive.
               </p>
             </div>
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6 sm:p-8">
+            {/* Correlation heatmap style */}
+            <div className="space-y-1.5">
               {[
-                { name: 'Volatility (14d)', dir: '↑', strength: 'Strong', r: '0.485', bullish: true, bar: 85 },
-                { name: 'Fear & Greed Index', dir: '↓', strength: 'Moderate', r: '-0.312', bullish: false, bar: 55 },
-                { name: 'Funding Rate', dir: '↓', strength: 'Strong', r: '-0.446', bullish: false, bar: 78 },
+                { name: 'Volatility (14d)', r7: 0.49, r14: 0.62, sig: true, bull: true },
+                { name: 'Fear & Greed', r7: -0.31, r14: -0.45, sig: true, bull: false },
+                { name: 'Funding Rate', r7: -0.12, r14: -0.45, sig: true, bull: false },
+                { name: 'Exchange Flow', r7: 0.39, r14: 0.28, sig: true, bull: true },
+                { name: 'RSI (14d)', r7: -0.27, r14: -0.18, sig: true, bull: false },
+                { name: 'Volume Trend', r7: 0.08, r14: 0.04, sig: false, bull: true },
               ].map((m) => (
-                <div key={m.name} className="flex items-center justify-between py-4 border-b border-[var(--border)] last:border-0 gap-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className={`text-sm font-bold ${m.bullish ? 'text-green-400' : 'text-red-400'}`}>{m.dir}</span>
-                    <div className="min-w-0">
-                      <span className="text-sm text-[var(--text)] block truncate">{m.name}</span>
-                      <span className="text-[11px] text-[var(--text-dim)]">{m.strength} · {m.bullish ? 'bullish' : 'bearish'}</span>
-                    </div>
+                <div key={m.name} className="flex items-center gap-2 group">
+                  <span className={`text-[11px] w-28 truncate ${m.sig ? 'text-[var(--text)]' : 'text-[var(--text-dim)]'}`}>{m.name}</span>
+                  {/* 7d cell */}
+                  <div className="heatmap-cell flex-1 h-8 rounded flex items-center justify-center relative overflow-hidden" style={{
+                    background: m.r7 > 0
+                      ? `rgba(34,197,94,${Math.abs(m.r7) * 0.4})`
+                      : `rgba(239,68,68,${Math.abs(m.r7) * 0.4})`,
+                  }}>
+                    <span className="text-[10px] font-mono text-white/80">{m.r7 > 0 ? '+' : ''}{m.r7.toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="w-16 h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${m.bullish ? 'bg-green-400' : 'bg-red-400'}`} style={{ width: `${m.bar}%` }} />
-                    </div>
-                    <span className="text-xs font-mono text-[var(--text-dim)] w-14 text-right">r = {m.r}</span>
+                  {/* 14d cell */}
+                  <div className="heatmap-cell flex-1 h-8 rounded flex items-center justify-center relative overflow-hidden" style={{
+                    background: m.r14 > 0
+                      ? `rgba(34,197,94,${Math.abs(m.r14) * 0.4})`
+                      : `rgba(239,68,68,${Math.abs(m.r14) * 0.4})`,
+                  }}>
+                    <span className="text-[10px] font-mono text-white/80">{m.r14 > 0 ? '+' : ''}{m.r14.toFixed(2)}</span>
                   </div>
+                  {/* Sig dot */}
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${m.sig ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`} />
                 </div>
               ))}
+              {/* Header labels */}
+              <div className="flex items-center gap-2 pt-2">
+                <span className="w-28" />
+                <span className="flex-1 text-center text-[9px] font-mono text-[var(--text-dim)] uppercase">7-day</span>
+                <span className="flex-1 text-center text-[9px] font-mono text-[var(--text-dim)] uppercase">14-day</span>
+                <span className="w-1.5" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Chapter 3: Strategies — Blue bg */}
-        <div className="chapter-reveal py-24 sm:py-32 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)]" style={{ background: '#4DA8FF' }}>
+        {/* Chapter 3: Strategies */}
+        <div className="chapter-reveal py-24 sm:py-32 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)] border-t border-[var(--border)]">
           <div className="max-w-[1100px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div>
               <div className="flex items-center gap-3 mb-8">
-                <span className="chapter-number">3</span>
-                <span className="text-xs font-mono text-[var(--bg)]/60 uppercase tracking-[0.15em]">Strategies</span>
+                <span className="chapter-number" style={{ background: 'var(--accent)', color: 'var(--bg)' }}>3</span>
+                <span className="text-xs font-mono text-[var(--accent)] uppercase tracking-[0.15em]">Strategies</span>
               </div>
-              <h3 className="display text-[var(--bg)]" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', lineHeight: 0.95 }}>
+              <h3 className="display" style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', lineHeight: 0.95 }}>
                 Patterns that<br />print money.
               </h3>
-              <p className="text-[var(--bg)]/70 text-lg max-w-[450px] mt-6 leading-relaxed">
+              <p className="text-[var(--text-muted)] text-base max-w-[450px] mt-6 leading-relaxed">
                 Multi-condition patterns backtested as trading rules. Win rates, equity curves,
                 hold period optimization — all from real price data.
               </p>
             </div>
-            <div className="rounded-2xl bg-[var(--bg)] p-6 sm:p-8 text-[var(--text)]">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-green-400 px-2 py-1 bg-green-400/10 rounded">A</span>
-                  <span className="text-xs font-mono text-green-400 animate-pulse">LIVE</span>
-                </div>
-                <span className="text-xs text-[var(--text-dim)]">hold 7 days · 10 trades</span>
-              </div>
-              <p className="text-sm text-[var(--text-muted)] mb-5">
-                <span className="font-bold text-green-400">Buy</span> when Fear & Greed is low and Volatility is high
-              </p>
-              <div className="grid grid-cols-4 gap-3">
-                {[
-                  { v: '80%', l: 'win rate', c: 'text-green-400' },
-                  { v: '+4.2%', l: 'avg return', c: 'text-green-400' },
-                  { v: '+38%', l: 'total', c: 'text-[var(--text)]' },
-                  { v: '+52%', l: 'vs HODL', c: 'text-green-400' },
-                ].map((s) => (
-                  <div key={s.l}>
-                    <span className={`text-xl font-mono font-bold ${s.c}`}>{s.v}</span>
-                    <span className="block text-[11px] text-[var(--text-dim)] mt-0.5">{s.l}</span>
+            {/* Strategy cards — matches real product */}
+            <div className="space-y-3">
+              {[
+                {
+                  action: 'Buy', conditions: 'Trading Volume is low AND Sentiment Ratio is high AND RSI (14d) is high',
+                  active: true, hold: 14,
+                  stats: [
+                    { v: '71%', l: 'win', c: 'text-green-400' },
+                    { v: '+1.6%', l: 'avg', c: 'text-green-400' },
+                    { v: '-0.7%', l: 'max dd', c: 'text-red-400' },
+                    { v: '+11.3%', l: 'total', c: 'text-green-400' },
+                    { v: '+8%', l: 'vs HODL', c: 'text-green-400' },
+                  ],
+                },
+                {
+                  action: 'Sell', conditions: 'Fear & Greed is low AND RSI (14d) is high AND Social Dominance is high',
+                  active: false, hold: 14,
+                  stats: [
+                    { v: '60%', l: 'win', c: 'text-green-400' },
+                    { v: '+0.8%', l: 'avg', c: 'text-green-400' },
+                    { v: '-1.4%', l: 'max dd', c: 'text-red-400' },
+                    { v: '+5.6%', l: 'total', c: 'text-green-400' },
+                    { v: '-1%', l: 'vs HODL', c: 'text-red-400' },
+                  ],
+                },
+              ].map((s, i) => (
+                <div key={i} className="strategy-card rounded-xl border border-[var(--border)] p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs text-[var(--text-muted)]">
+                      <span className={`font-bold ${s.action === 'Buy' ? 'text-green-400' : 'text-red-400'}`}>{s.action}</span> when {s.conditions}
+                    </p>
+                    <span className="text-[10px] font-mono text-[var(--text-dim)] shrink-0 ml-3">hold {s.hold}d</span>
                   </div>
-                ))}
-              </div>
+                  <div className="flex gap-4">
+                    {s.stats.map(st => (
+                      <div key={st.l} className="text-center">
+                        <span className={`text-sm font-mono font-bold ${st.c}`}>{st.v}</span>
+                        <span className="block text-[9px] text-[var(--text-dim)]">{st.l}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -642,27 +668,51 @@ export default function Home() {
                 analysis, anomaly alerts — directly from Etherscan. No estimates.
               </p>
             </div>
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-6 sm:p-8 space-y-3">
-              <div className="px-4 py-3 rounded-xl border border-green-400/20 bg-green-400/5">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono font-bold text-green-400">EXCHANGE OUTFLOW SPIKE</span>
-                  <span className="text-xs font-mono text-[var(--text-dim)]">3.2σ</span>
-                </div>
-                <p className="text-xs text-[var(--text-muted)]">Large withdrawals from exchanges — holders accumulating.</p>
+            {/* On-chain terminal style */}
+            <div className="font-mono text-[11px] leading-relaxed">
+              {/* Chain scan header */}
+              <div className="flex items-center gap-2 mb-4 text-[var(--text-dim)]">
+                <span className="w-2 h-2 rounded-full bg-green-400" />
+                <span>3 chains scanned · 11,633 transfers · 90 days</span>
               </div>
-              <div className="px-4 py-3 rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/5">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono font-bold text-[var(--accent)]">WASH TRADING DETECTED</span>
-                  <span className="text-xs font-mono text-[var(--text-dim)]">34%</span>
+              {/* Alerts as terminal output */}
+              <div className="space-y-3">
+                <div className="terminal-line flex gap-3">
+                  <span className="text-green-400 shrink-0">[FLOW]</span>
+                  <div>
+                    <span className="text-[var(--text)]">Exchange outflow spike detected</span>
+                    <span className="text-[var(--text-dim)]"> — 3.2σ above 30d avg</span>
+                    <div className="flex gap-4 mt-1 text-[var(--text-dim)]">
+                      <span>Binance: <span className="text-green-400">-2.4M</span></span>
+                      <span>Coinbase: <span className="text-green-400">-890K</span></span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-[var(--text-muted)]">34% of volume is round-trip. Real activity lower than it appears.</p>
+                <div className="terminal-line flex gap-3">
+                  <span className="text-red-400 shrink-0">[WASH]</span>
+                  <div>
+                    <span className="text-[var(--text)]">34% of volume is round-trip</span>
+                    <span className="text-[var(--text-dim)]"> — 12 address pairs identified</span>
+                    <div className="mt-1 text-[var(--text-dim)]">
+                      Real daily volume: <span className="text-[var(--text)]">$4.2M</span> <span className="text-red-400">(not $6.4M)</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="terminal-line flex gap-3">
+                  <span className="text-yellow-400 shrink-0">[VEST]</span>
+                  <div>
+                    <span className="text-[var(--text)]">Recurring transfer pattern</span>
+                    <span className="text-[var(--text-dim)]"> — 50K tokens every 14d</span>
+                    <div className="mt-1 text-[var(--text-dim)]">
+                      0x9270...3299 → 0xdfd5...963d <span className="text-yellow-400">5 occurrences</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="px-4 py-3 rounded-xl border border-yellow-400/20 bg-yellow-400/5">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono font-bold text-yellow-400">VESTING SCHEDULE</span>
-                  <span className="text-xs font-mono text-[var(--text-dim)]">recurring</span>
-                </div>
-                <p className="text-xs text-[var(--text-muted)]">Periodic same-value transfers detected — possible token unlock.</p>
+              {/* Footer */}
+              <div className="mt-4 pt-3 border-t border-[var(--border)] text-[var(--text-dim)] flex justify-between">
+                <span>Ethereum · Polygon · Arbitrum</span>
+                <span>cached 1h</span>
               </div>
             </div>
           </div>
@@ -684,31 +734,6 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════
           HOW IT WORKS — Three steps
           ════════════════════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-32 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)]">
-        <div className="max-w-[1200px] mx-auto">
-          <div className="chapter-reveal text-center mb-20">
-            <span className="tag-lime block mb-4">How it works</span>
-            <h2 className="display display-md">
-              Three steps. <span className="text-[var(--accent)]">Zero trust required</span>.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {[
-              { n: '01', title: 'Search', desc: 'Enter any token. We find it across CoinGecko, identify its chain deployments, and locate its contract addresses automatically.', color: '#1A3A5C' },
-              { n: '02', title: 'Analyze', desc: '31 metrics fetched in parallel from 7 sources. 90 days of data. Correlations computed, association rules mined, strategies backtested.', color: '#4DA8FF' },
-              { n: '03', title: 'Act', desc: 'Briefing tells you what matters. Signals show what correlates. Strategies tell you what historically works. On-chain shows what\'s happening now.', color: '#90CDF4' },
-            ].map((step) => (
-              <div key={step.n} className="chapter-reveal relative p-8 rounded-3xl border border-[var(--border)] bg-[var(--bg-elevated)] group hover:border-[var(--border-hover)] transition-all">
-                <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-[80px] opacity-0 group-hover:opacity-15 transition-opacity duration-700" style={{ background: step.color }} />
-                <span className="display text-6xl block mb-6" style={{ color: step.color, opacity: 0.3 }}>{step.n}</span>
-                <h3 className="display text-2xl mb-4">{step.title}</h3>
-                <p className="text-sm text-[var(--text-muted)] leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ════════════════════════════════════════════════════════
           DATA SOURCES — Pills
@@ -747,17 +772,29 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════════
           FOOTER CTA — nvg8 style large text on cream
           ════════════════════════════════════════════════════════ */}
-      <section className="py-32 sm:py-40 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)] bg-[var(--bg-cream)]">
-        <div className="footer-cta max-w-[1100px] mx-auto text-center">
-          <h2 className="display text-[var(--bg)]" style={{ fontSize: 'clamp(2.5rem, 7vw, 6rem)', lineHeight: 0.95 }}>
+      <section className="relative py-32 sm:py-40 px-[var(--side-margin-mobile)] sm:px-[var(--side-margin)] border-t border-[var(--border)] overflow-hidden">
+        {/* Character background */}
+        <Image
+          src="/tory-character-back.png"
+          alt=""
+          width={800}
+          height={960}
+          className="absolute left-[-10%] sm:left-[0%] top-1/2 -translate-y-1/2 w-[70%] sm:w-[50%] max-w-[650px] object-contain pointer-events-none select-none"
+          style={{
+            opacity: 0.12,
+            maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)',
+          }}
+        />
+        <div className="footer-cta relative z-10 max-w-[1100px] mx-auto text-center">
+          <h2 className="display" style={{ fontSize: 'clamp(2.5rem, 7vw, 6rem)', lineHeight: 0.95 }}>
             Start analyzing<br />
-            <span style={{ color: 'var(--accent)' }}>your tokens</span>.
+            <span className="text-[var(--accent)]">your tokens</span>.
           </h2>
-          <p className="text-[var(--bg)]/60 text-lg mt-6 mb-12 max-w-[500px] mx-auto">
-            31 metrics, 7 sources, every correlation tested.
+          <p className="text-[var(--text-muted)] text-lg mt-6 mb-12 max-w-[500px] mx-auto">
             Free. No signup required.
           </p>
-          <button onClick={() => router.push('/search')} className="btn-primary text-lg !px-12 !py-5 !bg-[var(--accent)] !text-[var(--bg)] hover:!shadow-[0_0_40px_rgba(77,168,255,0.3)]">
+          <button onClick={() => router.push('/search')} className="relative !px-12 !py-5 text-lg font-semibold text-white rounded-full overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_rgba(88,112,247,0.35)] hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, #8196FF, #5870F7, #3448C5)' }}>
             Launch Analysis
           </button>
         </div>
